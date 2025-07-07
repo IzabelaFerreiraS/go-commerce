@@ -1,5 +1,4 @@
-module github.com/IzabelaFerreiraS/go-commerce.git
-
+module go-commerce
 go 1.24.4
 
 require (

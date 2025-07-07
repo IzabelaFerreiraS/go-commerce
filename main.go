@@ -1,22 +1,18 @@
 package main
 
 import (
-	"github.com/IzabelaFerreiraS/go-commerce.git/config"
-	"github.com/IzabelaFerreiraS/go-commerce.git/router"
-)
-
-var (
-	logger *config.Logger
+	"go-commerce/config"
+	"go-commerce/routes"
 )
 
 func main() {
+    if err := config.Init(); err != nil {
+        config.GetLogger("main").Errorf("config initialization error: %v", err)
+        return
+    }
 
-	logger = config.GetLogger("main")
+    logger := config.GetLogger("main")
+    logger.Info("configuration completed, starting server")
 
-	err := config.Init()
-	if err != nil {
-		logger.Errorf("config initialization error: %v", err)
-		return
-	}
-	router.Initialize()
+    routes.Initialize()
 }
