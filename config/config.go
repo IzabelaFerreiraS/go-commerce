@@ -2,63 +2,66 @@ package config
 
 import (
 	"fmt"
-	"os"
-
+	"go-commerce/postgres"
 	"go-commerce/schemas"
+	"time"
 
-	"gorm.io/driver/sqlite"
+	"github.com/caarlos0/env/v10"
+	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
+
+type AppConfig struct {
+	Environment string `env:"ENVIRONMENT" envDefault:"dev"`
+	Port        string `env:"PORT" envDefault:"8080"`
+	PostgresDsn string `env:"POSTGRES_DSN"`
+}
 
 var (
-	db     *gorm.DB
-	logger *Logger
+	Env *AppConfig
+	DB *postgres.Postgres
 )
 
+func Load() error {
+	Env = new(AppConfig)
+	if err := env.Parse(Env); err != nil {
+		return fmt.Errorf("failed to parse environment variables: %w", err)
+	}
+	return nil
+}
+
 func Init() error {
-	logger = NewLogger("config")
-
-	dbPath := "./db/main.db"
-
-	if err := os.MkdirAll("./db", os.ModePerm); err != nil {
-		return fmt.Errorf("error creating db directory: %v", err)
-	}
-	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		logger.Info("database file not found, creating ...")
-		f, err := os.Create(dbPath)
-		if err != nil {
-			return fmt.Errorf("error creating db file: %v", err)
-		}
-		f.Close()
+	if err := Load(); err != nil {
+		return err
 	}
 
-	var err error
-	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
-	if err != nil {
-		logger.Errorf("sqlite opening error: %v", err)
-		return fmt.Errorf("error initializing sqlite: %w", err)
+	dbLogger := postgres.NewLogger(logger.Config{
+		SlowThreshold:             time.Second,
+		LogLevel:                  logger.Info,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  true,
+	})
+
+	DB = postgres.New(Env.PostgresDsn, &gorm.Config{
+		Logger: dbLogger.Instance,
+	})
+	if DB == nil {
+		return fmt.Errorf("failed to initialize postgres connection")
 	}
 
-	if err := db.AutoMigrate(
+	if err := DB.RunPing(10, 100, time.Minute); err != nil {
+		return err
+	}
+
+	if err := DB.RunAutoMigrate(
 		&schemas.User{},
 		&schemas.Product{},
 		&schemas.Sale{},
 	); err != nil {
-		logger.Errorf("sqlite automigration error: %v", err)
-		return fmt.Errorf("error running automigrate: %w", err)
+		return err
 	}
 
-	logger.Info("sqlite initialized and migrated successfully")
 	return nil
 }
 
-func GetSQLite() *gorm.DB {
-	return db
-}
-
-func GetLogger(prefix string) *Logger {
-	if logger == nil {
-		logger = NewLogger(prefix)
-	}
-	return logger
-}
