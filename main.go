@@ -3,16 +3,18 @@ package main
 import (
 	"go-commerce/config"
 	"go-commerce/routes"
+	"log"
+	"os"
 )
 
 func main() {
-    if err := config.Init(); err != nil {
-        config.GetLogger("main").Errorf("config initialization error: %v", err)
-        return
-    }
+	logger := log.New(os.Stdout, "main: ", log.Ldate|log.Ltime)
 
-    logger := config.GetLogger("main")
-    logger.Info("configuration completed, starting server")
+	if err := config.Init(); err != nil {
+		logger.Printf("config initialization error: %v", err)
+		return
+	}
 
-    routes.Initialize()
+	logger.Println("configuration completed, starting server")
+	routes.Initialize()
 }

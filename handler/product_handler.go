@@ -49,13 +49,20 @@ func (h *ProductHandler) DeleteProductHandler(ctx *gin.Context) {
         return
     }
 
-    err := h.service.DeleteProduct(id)
+    var req request.DeletedProductRequest
+
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        response.SendError(ctx, http.StatusForbidden, err.Error())
+        return
+    }
+
+    err := h.service.DeleteProduct(id, req.Role)
     if err != nil {
         if err == services.ErrProductNotFound {
             response.SendError(ctx, http.StatusNotFound, fmt.Sprintf("product with id: %s not found", id))
             return
         }
-        response.SendError(ctx, http.StatusInternalServerError, fmt.Sprintf("error deleting product with id: %s", id))
+        response.SendError(ctx, http.StatusInternalServerError, err.Error())
         return
     }
 

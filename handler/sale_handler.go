@@ -48,9 +48,14 @@ func (h *SaleHandler) DeleteSaleHandler(ctx *gin.Context) {
         return
     }
 
-    currentUserRole := ctx.GetString("userRole") 
+    var req request.DeletedSaleRequest
 
-    err := h.service.DeleteSale(id, currentUserRole)
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        response.SendError(ctx, http.StatusForbidden, err.Error())
+        return
+    }
+
+    err := h.service.DeleteSale(id, req.Role)
     if err != nil {
         response.SendError(ctx, http.StatusForbidden, err.Error())
         return
