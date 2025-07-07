@@ -12,7 +12,7 @@ var ErrProductNotFound = errors.New("product not found")
 
 type ProductService interface {
     CreateProduct(request.CreateProductRequest) (schemas.Product, error)
-    DeleteProduct(id string) error
+    DeleteProduct(id string, currentUserRole string) error
     ListProducts() ([]schemas.Product, error)
     ShowProduct(id string) (schemas.Product, error)
     UpdateProduct(id string, req request.UpdatedProductRequest) (schemas.Product, error)
@@ -37,7 +37,10 @@ func (s *productService) CreateProduct(req request.CreateProductRequest) (schema
     return product, err
 }
 
-func (s *productService) DeleteProduct(id string) error {
+func (s *productService) DeleteProduct(id string, currentUserRole string) error {
+    if currentUserRole != "admin" {
+        return errors.New("only admin can delete sales")
+    }
     product, err := s.repo.FindByID(id)
     if err != nil {
         return err

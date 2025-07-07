@@ -3,16 +3,16 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
-	"go-commerce/handler"
-	"go-commerce/services"
-	"go-commerce/repositories"
 	"go-commerce/config"
+	"go-commerce/handler"
+	"go-commerce/repositories"
+	"go-commerce/services"
 )
 
 func Initialize() {
 	router := gin.Default()
 
-	db := config.GetSQLite()
+	db := config.DB.DB
 
 	userRepo := repositories.NewUserRepository(db)
 	productRepo := repositories.NewProductRepository(db)
@@ -51,6 +51,7 @@ func Initialize() {
 		saleRoutes.POST("/", saleHandler.CreateSaleHandler)
 		saleRoutes.GET("/", saleHandler.ListSalesHandler)
 		saleRoutes.GET("/:id", saleHandler.ShowSaleHandler)
+		saleRoutes.DELETE("/:id", saleHandler.DeleteSaleHandler)
 	}
 
 	router.Run(":8080")
