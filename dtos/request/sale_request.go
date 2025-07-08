@@ -37,14 +37,3 @@ func (r *UpdatedSaleRequest) Validate() error {
 	}
 	return nil
 }
-
-type DeletedSaleRequest struct {
-	Role string `json:"role"`
-}
-
-func (r *DeletedSaleRequest) Validate() error {
-	if r.Role == "" {
-		return fmt.Errorf("request body is empty or malformed")
-	}
-	return nil
-}

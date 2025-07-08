@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"go-commerce/dtos/request"
@@ -42,22 +43,19 @@ func (h *SaleHandler) CreateSaleHandler(ctx *gin.Context) {
 }
 
 func (h *SaleHandler) DeleteSaleHandler(ctx *gin.Context) {
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
-    var req request.DeletedSaleRequest
-
-    if err := ctx.ShouldBindJSON(&req); err != nil {
-        response.SendError(ctx, http.StatusForbidden, err.Error())
-        return
-    }
-
-    err := h.service.DeleteSale(id, req.Role)
+    err := h.service.DeleteSale(id)
     if err != nil {
-        response.SendError(ctx, http.StatusForbidden, err.Error())
+        if err == services.ErrSaleNotFound {
+            response.SendError(ctx, http.StatusNotFound, fmt.Sprintf("sale with id: %s not found", id))
+            return
+        }
+        response.SendError(ctx, http.StatusInternalServerError, fmt.Sprintf("error deleting sale with id: %s", id))
         return
     }
 
@@ -75,9 +73,9 @@ func (h *SaleHandler) ListSalesHandler(ctx *gin.Context) {
 }
 
 func (h *SaleHandler) ShowSaleHandler(ctx *gin.Context) {
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 

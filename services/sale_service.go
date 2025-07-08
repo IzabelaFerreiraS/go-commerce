@@ -13,7 +13,7 @@ var ErrSaleNotFound = errors.New("sale not found")
 
 type SaleService interface {
     CreateSale(req request.CreateSaleRequest) (schemas.Sale, error)
-    DeleteSale(id string, currentUserRole string) error
+    DeleteSale(id string) error
     ListSales() ([]schemas.Sale, error)
     ShowSale(id string) (schemas.Sale, error)
 }
@@ -46,11 +46,7 @@ func (s *saleService) CreateSale(req request.CreateSaleRequest) (schemas.Sale, e
     return sale, err
 }
 
-func (s *saleService) DeleteSale(id string, currentUserRole string) error {
-    if currentUserRole != "admin" {
-        return errors.New("only admin can delete sales")
-    }
-
+func (s *saleService) DeleteSale(id string) error {
     sale, err := s.saleRepo.FindByID(id)
     if err != nil {
         return err
