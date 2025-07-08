@@ -43,9 +43,9 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 }
 
 func (h *UserHandler) DeleteUserHandler(ctx *gin.Context) {
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
@@ -72,9 +72,9 @@ func (h *UserHandler) ListUserHandler(ctx *gin.Context) {
 }
 
 func (h *UserHandler) ShowUserHandler(ctx *gin.Context) {
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
@@ -104,9 +104,9 @@ func (h *UserHandler) UpdateUserHandler(ctx *gin.Context) {
         return
     }
 
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
