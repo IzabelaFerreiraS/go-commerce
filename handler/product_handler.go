@@ -21,6 +21,12 @@ func NewProductHandler(s services.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) CreateProductHandler(ctx *gin.Context) {
+    currentUserRole := ctx.Query("role")
+    if currentUserRole == ""{
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("role", "queryParameter").Error())
+        return
+    }
+
     var req request.CreateProductRequest
 
     if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -33,9 +39,9 @@ func (h *ProductHandler) CreateProductHandler(ctx *gin.Context) {
         return
     }
 
-    product, err := h.service.CreateProduct(req)
+    product, err := h.service.CreateProduct(req, currentUserRole)
     if err != nil {
-        response.SendError(ctx, http.StatusInternalServerError, "error creating product on database")
+        response.SendError(ctx, http.StatusInternalServerError, err.Error())
         return
     }
 
@@ -43,20 +49,19 @@ func (h *ProductHandler) CreateProductHandler(ctx *gin.Context) {
 }
 
 func (h *ProductHandler) DeleteProductHandler(ctx *gin.Context) {
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
-    var req request.DeletedProductRequest
-
-    if err := ctx.ShouldBindJSON(&req); err != nil {
-        response.SendError(ctx, http.StatusForbidden, err.Error())
+    currentUserRole := ctx.Query("role")
+    if currentUserRole == ""{
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("role", "queryParameter").Error())
         return
     }
 
-    err := h.service.DeleteProduct(id, req.Role)
+    err := h.service.DeleteProduct(id, currentUserRole)
     if err != nil {
         if err == services.ErrProductNotFound {
             response.SendError(ctx, http.StatusNotFound, fmt.Sprintf("product with id: %s not found", id))
@@ -79,9 +84,9 @@ func (h *ProductHandler) ListProductHandler(ctx *gin.Context) {
 }
 
 func (h *ProductHandler) ShowProductHandler(ctx *gin.Context) {
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
@@ -99,6 +104,11 @@ func (h *ProductHandler) ShowProductHandler(ctx *gin.Context) {
 }
 
 func (h *ProductHandler) UpdateProductHandler(ctx *gin.Context) {
+    currentUserRole := ctx.Query("role")
+    if currentUserRole == ""{
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("role", "queryParameter").Error())
+        return
+    }
     var req request.UpdatedProductRequest
 
     if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -111,19 +121,19 @@ func (h *ProductHandler) UpdateProductHandler(ctx *gin.Context) {
         return
     }
 
-    id := ctx.Query("id")
+    id := ctx.Param("id")
     if id == "" {
-        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "queryParameter").Error())
+        response.SendError(ctx, http.StatusBadRequest, utils.ErrParamIsRequired("id", "parameter").Error())
         return
     }
 
-    product, err := h.service.UpdateProduct(id, req)
+    product, err := h.service.UpdateProduct(id, req, currentUserRole)
     if err != nil {
         if err == services.ErrProductNotFound {
             response.SendError(ctx, http.StatusNotFound, "product not found")
             return
         }
-        response.SendError(ctx, http.StatusInternalServerError, "error updating product on database")
+        response.SendError(ctx, http.StatusInternalServerError, err.Error())
         return
     }
 

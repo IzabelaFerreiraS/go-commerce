@@ -45,14 +45,3 @@ func (r *UpdatedProductRequest) Validate() error {
 
 	return fmt.Errorf("at least one valid field must be provided")
 }
-
-type DeletedProductRequest struct {
-	Role string `json:"role"`
-}
-
-func (r *DeletedProductRequest) Validate() error{
-	if r.Role != ""{
-		return fmt.Errorf("request body is empty or malformed")
-	}
-	return nil
-}
